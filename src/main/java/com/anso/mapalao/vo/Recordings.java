@@ -17,7 +17,7 @@ public class Recordings {
 
     @XStreamAlias("APIVersion")
     private String apiversion;
-    @XStreamImplicit(itemFieldName="name")
+    @XStreamImplicit(itemFieldName="recording")
     private List<Recording> recording;
 
     public String getApiversion() {
