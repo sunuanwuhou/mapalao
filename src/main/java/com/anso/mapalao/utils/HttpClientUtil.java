@@ -1,11 +1,9 @@
 package com.anso.mapalao.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Consts;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
+import org.apache.http.*;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -31,10 +29,7 @@ import org.apache.http.util.EntityUtils;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.CodingErrorAction;
 import java.security.cert.CertificateException;
@@ -463,6 +458,55 @@ public class HttpClientUtil {
     }
 
 
+    /**
+     * 下载文件
+     *
+     * @param url
+     * @param filePath
+     */
+    public static void DownloadFile(Map<String, String> params, String url, String filePath, Map<String, String> headMap) throws IOException {
+        HttpClient httpclient = HttpClients.createDefault();
+        OutputStream out = null;
+        InputStream is=null;
+        try {
+            if (params != null && !params.isEmpty()) {
+                List<NameValuePair> pairs = new ArrayList<NameValuePair>(params.size());
+                for (Map.Entry<String, String> entry : params.entrySet()) {
+                    String value = entry.getValue();
+                    if (value != null) {
+                        pairs.add(new BasicNameValuePair(entry.getKey(), value));
+                    }
+                }
+                url += "?" + EntityUtils.toString(new UrlEncodedFormEntity(pairs));
+            }
+            HttpGet httpGet = new HttpGet(url);
+            setGetHead(httpGet, headMap);
+            HttpResponse response = httpclient.execute(httpGet);
+            Header[] headers = response.getHeaders("content-disposition");
+            String[] split = headers[0].toString().split("=");
+            String fileName=split[1];
+            fileName=fileName.substring(1,fileName.length()-1);
+            HttpEntity httpEntity = response.getEntity();
+            is = httpEntity.getContent();
+            File file = new File(filePath);
+            if(!file.exists()){
+                file.mkdirs();
+            }
+            out = new FileOutputStream(new File(filePath+File.separator+fileName));
+            byte[] buffer = new byte[10 * 1024];
+            int readLength = 0;
+            while ((readLength=is.read(buffer)) > 0) {
+                byte[] bytes = new byte[readLength];
+                System.arraycopy(buffer, 0, bytes, 0, readLength);
+                out.write(bytes);
+            }
+            is.close();
+            out.flush();
+            out.close();
+        }catch (Exception  e){
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 设置http的HEAD
