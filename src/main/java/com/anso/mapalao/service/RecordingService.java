@@ -15,4 +15,8 @@ import java.util.List;
 public interface RecordingService extends BaseService<Recording,RecordingExample> {
 
     void batchInsert(List<Recording> recordings);
+
+    List<String>  getNumberList();
+
+    List<Integer>  getIdList();
 }

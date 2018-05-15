@@ -487,6 +487,9 @@ public class HttpClientUtil {
             try {
                 HttpEntity httpEntity = response1.getEntity();
                 Header[] headers = response1.getHeaders("content-disposition");
+                if(headers.length==0){
+                    return null;
+                }
                 String [] value = headers[0].getValue().split("=");
                 String fileName=value[1];
                 fileName=fileName.substring(1,fileName.length()-1);
@@ -495,7 +498,7 @@ public class HttpClientUtil {
                 if(!file.exists()){
                     file.mkdirs();
                 }
-                out = new FileOutputStream( new File(filePath,fileName));
+                out = new FileOutputStream( new File(filePath+File.separator+fileName));
                 byte[] buffer = new byte[4096];
                 int readLength = 0;
                 while ((readLength=is.read(buffer)) > 0) {
