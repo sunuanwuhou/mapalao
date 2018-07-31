@@ -44,9 +44,10 @@ public class MaPaLaoController {
     // @Scheduled(cron="0 0 0 1/1 * ? ")
     @RequestMapping("/list")
     public void getRecordData(){
-
-        recording();//16开始
+        long startTime = System.currentTimeMillis();    //获取开始时间
+        recording();//
         List<String> numberList = recordingService.getNumberList();
+        logger.info("此次获得数据为：" +numberList.size());
         for (String s : numberList) {
             record(s);
         }
@@ -54,9 +55,12 @@ public class MaPaLaoController {
         for (Integer integer : idList) {
             saveAudio(integer);
         }
+        logger.info("程序运行时间：" + (System.currentTimeMillis() - startTime) + "ms");
     }
 
-
+    /**
+     * 根据查询时间获取安信每一天的基本信息
+     */
     public void recording(){
         String ret="";
         String url="http://121.40.190.180/datagate/api/recordingsapi.ashx";
@@ -79,6 +83,11 @@ public class MaPaLaoController {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 每一天的详细信息
+     * @param number
+     */
     public  void record(String number){
         String ret="";
         String url="http://121.40.190.180/hwmonline/hwmcarcgi.cgi";
@@ -108,7 +117,7 @@ public class MaPaLaoController {
                 recordList.add(record);
             }
             recordService.batchInsert(recordList);
-            logger.info("获取详细数据成功");
+            logger.info(number+":获取详细数据成功");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -117,6 +126,10 @@ public class MaPaLaoController {
     @Value("${filepath}")
     private String filePath;
 
+    /**
+     * 保存每天的文件
+     * @param id
+     */
     public void saveAudio(Integer id){
         String url="http://121.40.190.180/datagate/api/getrecordingsapi.ashx";
         Map<String,String> reqMap=new HashMap<>();
@@ -127,7 +140,7 @@ public class MaPaLaoController {
         filePath="W://111";
         try {
             result=HttpClientUtil.DownloadFile(reqMap,url,filePath,null);
-            logger.info("下载文件成功");
+            logger.info(id+":下载文件成功");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -139,7 +152,7 @@ public class MaPaLaoController {
      * 获取今天日期
      * @return
      */
-    public String getStartdate(){
+    public String getEnddate(){
         Calendar ca = Calendar.getInstance();
         String startdate=format.format(ca.getTime());
         return startdate;
@@ -150,9 +163,9 @@ public class MaPaLaoController {
      * 获取2月前
      * @return
      */
-    public String getEnddate(){
+    public String getStartdate(){
         Calendar ca = Calendar.getInstance();
-        ca.add(Calendar.MONTH, -2); // 年份减1
+        ca.add(Calendar.MONTH, -5); // 年份减1
         String enddate=format.format(ca.getTime());
         return enddate;
     }
